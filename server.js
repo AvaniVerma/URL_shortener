@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const validUrl = require('valid-url');
 const shortid = require('shortid');
+var admin = require('firebase-admin');
 const port = 5000||process.env.port;
 
 
@@ -17,10 +18,23 @@ app.use(express.static('views/images'));
 
  
 
+
+// Link to firebase
+var serviceAccount = require("./url-shortener-a50b6-firebase-adminsdk-3hysw-4a7981aa9f.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://url-shortener-a50b6.firebaseio.com"
+});
+
+// Get a database reference to firebase
+var db = admin.database();
+
+
 // Creates a short URL for a single long URL
-// To-do : Link to a database
-//         Redirect to original URL from the short one
+// To-do : Redirect to original URL from the short one
 //         Add search facility
+//          Add checks for repetition of key or original URL
 app.post('/shorten', function(req,res)
 {
     var x=req.body.url,arr=[],msg=[];
@@ -32,7 +46,7 @@ app.post('/shorten', function(req,res)
     while(arr.length)
     {
         url=arr.shift();
-        console.log(url)
+        // console.log(url)
         // Checks validity of a URL
         if (!validUrl.isUri(url))
             msg.push(`${url} doesn't look like a valid URL.`);
@@ -43,11 +57,21 @@ app.post('/shorten', function(req,res)
             short : shortid.generate(),
             original : url
         }
-        msg.push(obj);
+        
+        db.ref(`short/${obj.short}/`).set(obj,function(err){
+            if(err==null)
+                msg.push(`${url} shortened successfully.`);
+            else 
+                msg.push(`${url} couldn't be shortened properly. Please try again.`)    
+        });
         }
     }   
-    res.send(msg);
+    res.render('index', {msg : msg});
 })
+
+
+
+
 
 // 404 Handler
 app.use(function(req,res){
