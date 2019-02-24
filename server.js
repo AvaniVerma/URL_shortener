@@ -71,6 +71,25 @@ app.post('/shorten', function(req,res)
 
 
 
+// Redirecting to proper url
+app.get('/link/:shortURL', function(req,res){
+       console.log("Called");
+       var url = req.params.shortURL, link='/',x;
+       db.ref('/short/').once('value').then(function(snapshot) {
+            x = snapshot.val(); 
+            // console.log(x);   
+            for (var key in x) {
+                if(key==url)
+                {
+                    link = x[url].original;
+                    res.redirect(link);
+                    break;
+                }
+            }
+            if(link=='/')
+                res.redirect('/');          
+        });
+})
 
 
 // 404 Handler
@@ -78,6 +97,7 @@ app.use(function(req,res){
     res.render('404')
 })
 
+// Start server
 app.listen(port, function(){
     console.log(`Server listening on ${port}`)
 })
