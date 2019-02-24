@@ -17,6 +17,10 @@ app.set('view engine', 'hbs')
 app.use(express.static('views/images')); 
 
  
+// To-do : Add checks for repetition of key or original URL
+//         List all the previously shortened URLs
+
+
 
 
 // Link to firebase
@@ -32,9 +36,6 @@ var db = admin.database();
 
 
 // Creates a short URL for a single long URL
-// To-do : Redirect to original URL from the short one
-//         Add search facility
-//          Add checks for repetition of key or original URL
 app.post('/shorten', function(req,res)
 {
     var x=req.body.url,arr=[],msg=[];
@@ -73,7 +74,6 @@ app.post('/shorten', function(req,res)
 
 // Redirecting to proper url
 app.get('/link/:shortURL', function(req,res){
-       console.log("Called");
        var url = req.params.shortURL, link='/',x;
        db.ref('/short/').once('value').then(function(snapshot) {
             x = snapshot.val(); 
@@ -90,6 +90,27 @@ app.get('/link/:shortURL', function(req,res){
                 res.redirect('/');          
         });
 })
+
+
+// Find original link from the shortened link
+app.get('/original/:shortURL', function(req,res){
+    console.log("Called");
+    var url = req.params.shortURL, link='/',x;
+    db.ref('/short/').once('value').then(function(snapshot) {
+         x = snapshot.val();    
+         for (var key in x) {
+             if(key==url)
+             {
+                 link = x[url].original;
+                 res.render('original', {msg: "Here's the original link", found : link});
+                 break;
+             }
+         }
+         if(link=='/')
+             res.render('original', {msg : "No link found"});          
+     });
+})
+
 
 
 // 404 Handler
