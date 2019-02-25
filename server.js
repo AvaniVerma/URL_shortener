@@ -17,7 +17,9 @@ app.set('view engine', 'hbs')
 
  
 // To-do : Add checks for repetition of key or original URL
-//         List all the previously shortened URLs
+//          Integrate properly
+//          Redirect after shortening a URL
+//          Improve UI of list
 
 
 
@@ -38,7 +40,8 @@ var db = admin.database();
 app.post('/shorten', function(req,res)
 {
     var x=req.body.url,arr=[],msg=[];
-    console.log("I received a request")
+    // console.log("I received a request")
+    
     // It it's a single URL, make it an array
     if(!(x.constructor === Array))  arr.push(x);
     else  arr=x;
@@ -51,15 +54,7 @@ app.post('/shorten', function(req,res)
         // Checks validity of a URL
         if (validUrl.isUri(url))
         {
-            db.ref('/short/').once('value').then(function(snapshot) {
-                x = snapshot.val(); 
-                for (var key in x) {
-                    link = x[key].original;
-                    // If said url has already been shortened skip it
-                    if(link == url)
-                        break;
-                    else
-                    {  
+                        console.log("generating")
                         var obj={ 
                             // Generate a short ID
                             short : shortid.generate(),
@@ -73,13 +68,10 @@ app.post('/shorten', function(req,res)
                             else 
                                 msg.push(`${url} couldn't be shortened properly. Please try again.`)
                         });
-                    }
-
-                }          
-            });
+      
         }
     } 
-    res.render('list');
+    res.render('index', {msg : "Please visit list of shortened URLs."});
 })
 
 
@@ -99,19 +91,15 @@ app.get('/list', function(req,res){
             });             
         }
         console.log("out")
-        // res.render('after_req', {msg : arr});
-        res.send(arr);
+        res.render('after_req', {msg : arr});
     });
 })
 
 
-
-
-
-
 // Redirecting to proper url from short URL
-app.get('/link/:shortURL', function(req,res){
-       var url = req.params.shortURL, link='/',x;
+app.post('/link', function(req,res){
+       var url = req.body.shortURL, link='/',x;
+       console.log(url);
        db.ref('/short/').once('value').then(function(snapshot) {
             x = snapshot.val(); 
             // console.log(x);   
@@ -131,23 +119,23 @@ app.get('/link/:shortURL', function(req,res){
 
 
 // Find original link from the shortened link
-app.get('/original/?shortURL', function(req,res){
-    console.log("Called");
-    var url = req.query.shortURL, link='/',x;
-    db.ref('/short/').once('value').then(function(snapshot) {
-         x = snapshot.val();    
-         for (var key in x) {
-             if(key==url)
-             {
-                 link = x[url].original;
-                 res.render('original', {msg: "Here's the original link", found : link});
-                 break;
-             }
-         }
-         if(link=='/')
-             res.render('original', {msg : "No link found"});          
-     });
-})
+// app.get('/original/?shortURL', function(req,res){
+//     console.log("Called");
+//     var url = req.query.shortURL, link='/',x;
+//     db.ref('/short/').once('value').then(function(snapshot) {
+//          x = snapshot.val();    
+//          for (var key in x) {
+//              if(key==url)
+//              {
+//                  link = x[url].original;
+//                  res.render('original', {msg: "Here's the original link", found : link});
+//                  break;
+//              }
+//          }
+//          if(link=='/')
+//              res.render('original', {msg : "No link found"});          
+//      });
+// })
 
 
 
