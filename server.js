@@ -14,7 +14,6 @@ app.get('/', function(req,res){
 })
 
 app.set('view engine', 'hbs')
-app.use(express.static('views/images')); 
 
  
 // To-do : Add checks for repetition of key or original URL
@@ -39,6 +38,7 @@ var db = admin.database();
 app.post('/shorten', function(req,res)
 {
     var x=req.body.url,arr=[],msg=[];
+    console.log("I received a request")
     // It it's a single URL, make it an array
     if(!(x.constructor === Array))  arr.push(x);
     else  arr=x;
@@ -47,32 +47,69 @@ app.post('/shorten', function(req,res)
     while(arr.length)
     {
         url=arr.shift();
-        // console.log(url)
+        // Display appropriate message for incorrect input
         // Checks validity of a URL
-        if (!validUrl.isUri(url))
-            msg.push(`${url} doesn't look like a valid URL.`);
-        else
+        if (validUrl.isUri(url))
         {
-        var obj={ 
-            // Generate a short ID
-            short : shortid.generate(),
-            original : url
+            db.ref('/short/').once('value').then(function(snapshot) {
+                x = snapshot.val(); 
+                for (var key in x) {
+                    link = x[key].original;
+                    // If said url has already been shortened skip it
+                    if(link == url)
+                        break;
+                    else
+                    {  
+                        var obj={ 
+                            // Generate a short ID
+                            short : shortid.generate(),
+                            original : url,
+                            visited : 0
+                        }
+                        
+                        db.ref(`short/${obj.short}/`).set(obj,function(err){
+                            if(err==null)
+                                msg.push(`${url} shortened successfully as ${url.short}.`);
+                            else 
+                                msg.push(`${url} couldn't be shortened properly. Please try again.`)
+                        });
+                    }
+
+                }          
+            });
         }
-        
-        db.ref(`short/${obj.short}/`).set(obj,function(err){
-            if(err==null)
-                msg.push(`${url} shortened successfully.`);
-            else 
-                msg.push(`${url} couldn't be shortened properly. Please try again.`)    
-        });
-        }
-    }   
-    res.render('index', {msg : msg});
+    } 
+    res.render('list');
 })
 
 
 
-// Redirecting to proper url
+// List all the shortened URLs
+app.get('/list', function(req,res){
+    var arr=[];
+    db.ref('/short/').once('value').then(function(snapshot) {
+        x = snapshot.val();   
+        for (var key in x) 
+        {
+            console.log("in")
+            arr.push({
+                link : x[key].original,
+                short : key,
+                visited : x[key].visited
+            });             
+        }
+        console.log("out")
+        // res.render('after_req', {msg : arr});
+        res.send(arr);
+    });
+})
+
+
+
+
+
+
+// Redirecting to proper url from short URL
 app.get('/link/:shortURL', function(req,res){
        var url = req.params.shortURL, link='/',x;
        db.ref('/short/').once('value').then(function(snapshot) {
@@ -81,6 +118,7 @@ app.get('/link/:shortURL', function(req,res){
             for (var key in x) {
                 if(key==url)
                 {
+                    x[url].visited=x[url].visited+1;
                     link = x[url].original;
                     res.redirect(link);
                     break;
@@ -93,9 +131,9 @@ app.get('/link/:shortURL', function(req,res){
 
 
 // Find original link from the shortened link
-app.get('/original/:shortURL', function(req,res){
+app.get('/original/?shortURL', function(req,res){
     console.log("Called");
-    var url = req.params.shortURL, link='/',x;
+    var url = req.query.shortURL, link='/',x;
     db.ref('/short/').once('value').then(function(snapshot) {
          x = snapshot.val();    
          for (var key in x) {
