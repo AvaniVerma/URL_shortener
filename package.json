@@ -4,7 +4,7 @@
   "scripts" : {
     "start" : "node server.js"
   }
-  "dependencies": {
+  "dependencies" : {
     "express": "^4.16.4",
     "firebase-admin": "^7.0.0",
     "hbs": "^4.0.2",
