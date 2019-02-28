@@ -3,7 +3,7 @@ const app = express();
 const validUrl = require('valid-url');
 const shortid = require('shortid');
 var admin = require('firebase-admin');
-const port = 5000||process.env.port;
+var port = 1234||process.env.port;
 
 
 app.use(express.json())
