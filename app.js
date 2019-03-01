@@ -3,7 +3,7 @@ const app = express();
 const validUrl = require('valid-url');
 const shortid = require('shortid');
 var admin = require('firebase-admin');
-var port = 1234||process.env.port;
+var port = 1123||process.env.port;
 
 
 app.use(express.json())
@@ -41,38 +41,57 @@ var db = admin.database();
 app.post('/shorten', function(req,res)
 {
     var x=req.body.url,arr=[],msg=[];
+    if(x.length == 0) res.end();
     // console.log("I received a request")
     
     // It it's a single URL, make it an array
     if(!(x.constructor === Array))  arr.push(x);
     else  arr=x;
 
+    
+
     // Loop to check if all the URLs are valid, if yes shorten them
     while(arr.length)
-    {
+    {   
         url=arr.shift();
         // Display appropriate message for incorrect input
-        // Checks validity of a URL
-        if (validUrl.isUri(url))
-        {
-                        console.log("generating")
-                        var obj={ 
-                            // Generate a short ID
-                            short : shortid.generate(),
-                            original : url,
-                            visited : 0
-                        }
-                        
-                        db.ref(`short/${obj.short}/`).set(obj,function(err){
-                            if(err==null)
-                                msg.push(`${url} shortened successfully as ${url.short}.`);
-                            else 
-                                msg.push(`${url} couldn't be shortened properly. Please try again.`)
-                        });
-      
+        if(validUrl.isUri(url))
+        {   var s_var = url.split('/').join('')
+                    .split(':').join('')
+                    .split('&').join('')
+                    .split('?').join('')
+                    .split('-').join('')
+                    .split('.').join('')
+                    .split('$').join('')
+                    .split('[').join('')
+                    .split(']').join('')
+                    .split('#').join('');
+
+
+        console.log("generating")
+        var obj={ 
+            // Generate a short ID
+            short : shortid.generate(),
+            original : url,
+            visited : 0
+            }
+       
+        db.ref(`short/${s_var}/`).transaction(function(currentData) {
+            if (currentData === null) {
+            return obj;
+            } else {
+            return; // Abort the transaction.
+               }
+            }, function(error, committed, snapshot) {
+                if (error) {
+                  console.log('Transaction failed abnormally!', error);
+                } else {
+                  console.log('Data added!');
+                }
+        });   
         }
-    } 
-    res.render('index', {msg : "Please visit list of shortened URLs."});
+    }
+    res.render('index', {msg : `Please visit list of shortened URLs.`});
 })
 
 
@@ -82,33 +101,24 @@ app.get('/list', function(req,res){
     var arr=[];
     db.ref('/short/').once('value').then(function(snapshot) {
         x = snapshot.val();   
-        for (var key in x) 
-        {
-            console.log("in")
-            arr.push({
-                link : x[key].original,
-                short : key,
-                visited : x[key].visited
-            });             
-        }
+        
         console.log("out")
-        res.render('after_req', {msg : arr});
+        res.render('after_req', {msg : x});
     });
 })
 
 
 // Redirecting to proper url from short URL
-app.post('/link', function(req,res){
-       var url = req.body.shortURL, link='/',x;
-       console.log(url);
+app.get('/:link', function(req,res){
+       var url = req.params.link, link='/',x;
+    //    console.log(url);
        db.ref('/short/').once('value').then(function(snapshot) {
             x = snapshot.val(); 
             // console.log(x);   
             for (var key in x) {
-                if(key==url)
-                {
-                    x[url].visited=x[url].visited+1;
-                    link = x[url].original;
+                if(x[key].short==url)
+                {                   
+                    link = x[key].original;
                     res.redirect(link);
                     break;
                 }
@@ -117,27 +127,6 @@ app.post('/link', function(req,res){
                 res.redirect('/');          
         });
 })
-
-
-// Find original link from the shortened link
-// app.get('/original/?shortURL', function(req,res){
-//     console.log("Called");
-//     var url = req.query.shortURL, link='/',x;
-//     db.ref('/short/').once('value').then(function(snapshot) {
-//          x = snapshot.val();    
-//          for (var key in x) {
-//              if(key==url)
-//              {
-//                  link = x[url].original;
-//                  res.render('original', {msg: "Here's the original link", found : link});
-//                  break;
-//              }
-//          }
-//          if(link=='/')
-//              res.render('original', {msg : "No link found"});          
-//      });
-// })
-
 
 
 // 404 Handler

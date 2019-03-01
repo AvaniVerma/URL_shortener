@@ -21,11 +21,6 @@
       </li>
     </ul>
 
-     <form class="form-inline my-2 my-lg-0" method="POST" action="/link">
-      <input class="form-control mr-sm-2" type="text" name="shortURL" placeholder="Expand">
-      <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
-    </form>
-
   </div>
 
 </nav>
@@ -35,11 +30,11 @@
 <ul>
     {{#each msg}}
     <div style="text-align:center;">
-        <b>{{this.link}}</b><br>
-        shortened as <br>
-        <i>{{this.short}}</i><br>
-        has been visited 
-        {{this.visited}} times.
+        <b>{{this.original}}</b><br>
+        is shortened as <br>
+        <i><a href="{{this.short}}">{{this.short}}</a></i><br>
+        {{!-- has been visited  --}}
+        {{!-- {{this.visited}} times. --}}
     </div>
     <br><br>
     {{/each}}
