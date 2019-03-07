@@ -1,7 +1,5 @@
 const express = require('express');
 const app = express();
-const validUrl = require('valid-url');
-const shortid = require('shortid');
 var admin = require('firebase-admin');
 var port = 1123||process.env.port;
 
@@ -22,86 +20,22 @@ app.set('view engine', 'hbs')
 //          Redirect after shortening a URL
 //          Improve UI of list
 
+const urlShortner = require('./controllers/urlShortnerController');
 
-
-
-// Link to firebase
-var serviceAccount = require("./url-shortener-a50b6-firebase-adminsdk-3hysw-4a7981aa9f.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://url-shortener-a50b6.firebaseio.com"
-});
 
 // Get a database reference to firebase
-var db = admin.database();
+var db = require('./db');
 
 
 // Creates a short URL for a single long URL
-app.post('/shorten', function(req,res)
-{
-    var x=req.body.url,arr=[],msg=[];
-    if(x.length == 0) res.end();
-    // console.log("I received a request")
-    
-    // It it's a single URL, make it an array
-    if(!(x.constructor === Array))  arr.push(x);
-    else  arr=x;
-
-    
-
-    // Loop to check if all the URLs are valid, if yes shorten them
-    while(arr.length)
-    {   
-        url=arr.shift();
-        // Display appropriate message for incorrect input
-        if(validUrl.isUri(url))
-        {   var s_var = url.split('/').join('')
-                    .split(':').join('')
-                    .split('&').join('')
-                    .split('?').join('')
-                    .split('-').join('')
-                    .split('.').join('')
-                    .split('$').join('')
-                    .split('[').join('')
-                    .split(']').join('')
-                    .split('#').join('');
-
-
-        console.log("generating")
-        var obj={ 
-            // Generate a short ID
-            short : shortid.generate(),
-            original : url,
-            visited : 0
-            }
-       
-        db.ref(`short/${s_var}/`).transaction(function(currentData) {
-            if (currentData === null) {
-            return obj;
-            } else {
-            return; // Abort the transaction.
-               }
-            }, function(error, committed, snapshot) {
-                if (error) {
-                  console.log('Transaction failed abnormally!', error);
-                } else {
-                  console.log('Data added!');
-                }
-        });   
-        }
-    }
-    res.render('index', {msg : `Please visit list of shortened URLs.`});
-})
-
+app.post('/shorten', urlShortner.shorten);
 
 
 // List all the shortened URLs
 app.get('/list', function(req,res){
     var arr=[];
-    db.ref('/short/').once('value').then(function(snapshot) {
+    db.ref('shorten_urls').once('value').then(function(snapshot) {
         x = snapshot.val();   
-        
         console.log("out")
         res.render('after_req', {msg : x});
     });
@@ -112,7 +46,7 @@ app.get('/list', function(req,res){
 app.get('/:link', function(req,res){
        var url = req.params.link, link='/',x;
     //    console.log(url);
-       db.ref('/short/').once('value').then(function(snapshot) {
+       db.ref('shorten_urls').once('value').then(function(snapshot) {
             x = snapshot.val(); 
             // console.log(x);   
             for (var key in x) {
