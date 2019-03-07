@@ -12,9 +12,8 @@ const store = (url) => {
     }
 
     return new Promise((resolve, reject) => {
-        db.ref('shorten_urls').set({
-            [obj.short]: obj
-        }, (err, data) => {
+        db.ref(`shorten_urls/${obj.short}`).set(obj
+         , (err, data) => {
             if(err) {
                 return reject(err);
             }
