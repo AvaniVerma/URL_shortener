@@ -32,10 +32,36 @@ app.post('/shorten', urlShortner.shorten);
 
 
 // List all the shortened URLs
-app.get('/list', urlShortner.index);
+app.get('/list', function(req,res){
+    var arr=[];
+    db.ref('shorten_urls').once('value').then(function(snapshot) {
+        x = snapshot.val();   
+        console.log("out")
+        res.render('after_req', {msg : x});
+    });
+})
+
 
 // Redirecting to proper url from short URL
-app.get('/:link', urlShortner.find);
+app.get('/:link', function(req,res){
+       var url = req.params.link, link='/',x;
+    //    console.log(url);
+       db.ref('shorten_urls').once('value').then(function(snapshot) {
+            x = snapshot.val(); 
+            // console.log(x);   
+            for (var key in x) {
+                if(x[key].short==url)
+                {                   
+                    link = x[key].original;
+                    res.redirect(link);
+                    break;
+                }
+            }
+            if(link=='/')
+                res.redirect('/');          
+        });
+})
+
 
 // 404 Handler
 app.use(function(req,res){
