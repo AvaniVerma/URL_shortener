@@ -42,7 +42,8 @@ exports.shorten = async (req, res) => {
         validateUrls(urls);
         // wait while all urls beign stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
-        res.send({ message: 'URL has been posted successfully.', data: shortedUrls });
+        console.log(shortedUrls);
+        res.render('added',{ message: 'URL has been shortened successfully.', msg: shortedUrls });
     } catch(err) {
         res.status(422).send({
             message: err.message
