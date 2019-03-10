@@ -32,13 +32,14 @@ const validateUrls = urls => {
 
 exports.shorten = async (req, res) => {
     try {
+        const urls = Array.isArray(req.body.url) ? req.body.url : [ req.body.url ];
         
-        if(req.body.url.trim().length==0) {
+        for(url in urls)
+        {
+            if(url.trim().length==0)
             throw new Error('Please provide url');
         }
 
-        const urls = Array.isArray(req.body.url) ? req.body.url : [ req.body.url ];
-        
         validateUrls(urls);
         // wait while all urls beign stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
