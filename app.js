@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 var admin = require('firebase-admin');
-var port = 1123||process.env.port;
+var port = 1124||process.env.port;
 
 
 app.use(express.json())
@@ -28,7 +28,7 @@ var db = require('./db');
 
 
 // Creates a short URL for a single long URL
-app.post('/shorten', urlShortner.shorten);
+app.post('/', urlShortner.shorten);
 
 
 // List all the shortened URLs

@@ -33,7 +33,7 @@ const validateUrls = urls => {
 exports.shorten = async (req, res) => {
     try {
         
-        if(!req.body.url) {
+        if(req.body.url.trim().length==0) {
             throw new Error('Please provide url');
         }
 
@@ -43,7 +43,7 @@ exports.shorten = async (req, res) => {
         // wait while all urls beign stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
         console.log(shortedUrls);
-        res.render('added',{ message: 'URL has been shortened successfully.', msg: shortedUrls });
+        res.render('index',{ message: 'URL has been shortened successfully.', msg: shortedUrls });
     } catch(err) {
         res.status(422).send({
             message: err.message
