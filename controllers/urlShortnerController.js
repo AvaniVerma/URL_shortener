@@ -3,23 +3,16 @@ const shortid = require('shortid');
 
 const db = require('../db');
 
+const shortedUrlsRef = db.ref('/shorten_urls');
+
 const store = (url) => {
     const obj = { 
         short : shortid.generate(),
         original : url,
-        createdAt: new Date(),
+        createdAt: (new Date()).toJSON(),
         visited : 0
     }
-
-    return new Promise((resolve, reject) => {
-        db.ref(`shorten_urls/${obj.short}`).set(obj
-         , (err, data) => {
-            if(err) {
-                return reject(err);
-            }
-            resolve(obj);
-        });
-    })
+    return db.ref('shorten_urls').child(obj.short).set(obj).then(() => obj);
 }
 
 const validateUrls = urls => {
@@ -49,5 +42,30 @@ exports.shorten = async (req, res) => {
         res.status(422).send({
             message: err.message
         });
+    }
+}
+
+
+exports.index = async (req, res) => {
+    try {
+        const snapshots = await shortedUrlsRef.once('value');
+        res.send(snapshots.val());
+    } catch(err) {
+        res.status(500).send(err.message);
+    }
+}
+
+exports.find = async (req, res) => {
+    try {
+        const snaps = await shortedUrlsRef.child(req.params.link).once('value');
+        const link = snaps.val();
+        if(!link) {
+            throw new Error('Then url is not valid');
+        }
+        res.redirect(link.original)
+    } catch(err) {
+        console.log(err);
+        return res.redirect('/');
+        res.status(404).send({ message: err.message });
     }
 }
