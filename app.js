@@ -41,6 +41,10 @@ app.get('/list', function(req,res){
     });
 })
 
+app.get('/favicon.ico', (req, res) => {
+    return res.status(404).send();
+});
+
 
 // Redirecting to proper url from short URL
 

@@ -8,7 +8,10 @@
     "valid-url": "^1.0.9"
   },
   "scripts": {
-    "start": "node app.js"
+    "start": "nodemon app.js"
   },
-  "version": ""
+  "version": "",
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
 }

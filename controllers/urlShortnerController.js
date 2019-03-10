@@ -3,7 +3,7 @@ const shortid = require('shortid');
 
 const db = require('../db');
 
-const shortedUrlsRef = db.ref('shorten_urls');
+const shortedUrlsRef = db.ref('/shorten_urls');
 
 const store = (url) => {
     const obj = { 
