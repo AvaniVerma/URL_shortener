@@ -26,11 +26,12 @@
 
 <br><br><br>
 
-
+<div class="alert alert-dismissible alert-success" style="text-align:center; margin: 0 10%; padding:0; border:0;">
+  {{message}} 
+</div>
 
 {{!-- input form --}}
-<form style="width:70%; margin:0 auto;" method="POST" action="/shorten" >
-    <legend>{{msg}}</legend>
+<form style="width:70%; margin:0 auto;" method="POST" action="/" >
     <legend>Enter URL to shorten </legend>
 
     <div id="inputDiv">
@@ -43,9 +44,25 @@
     <button type="button" class="btn btn-secondary" onclick="addmore()">Add more</button>
     <br><br>
 
-    <button type="submit" class="btn btn-primary" onclick="submit()">Submit</button>
+    <button type="submit" class="btn btn-primary">Submit</button>
 
 </form>
+
+<br><br><br>
+
+<ul>
+    {{#each msg}}
+    <div style="text-align:center;">
+        <b>{{this.original}}</b><br>
+        is shortened as <br>
+        <i><a href="{{this.short}}">{{this.short}}</a></i><br>
+        {{!-- has been visited  --}}
+        {{!-- {{this.visited}} times. --}}
+    </div>
+    <br><br>
+    {{/each}}
+</ul>
+
 
 {{!-- Scripts --}}
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -60,16 +77,6 @@ function addmore()
         <input type="text" class="form-control" placeholder="URL" name="url">
     </div>`)
 }
-
-
-{{!-- function submit()
-{
-    console.log("button pressed")
-    var arr = $('input');
-    var send_arr=[];
-    for(i of arr) send_arr.push(i.value);
-    
-} --}}
 
 </script>
 

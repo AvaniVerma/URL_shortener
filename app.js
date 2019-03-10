@@ -28,7 +28,7 @@ var db = require('./db');
 
 
 // Creates a short URL for a single long URL
-app.post('/shorten', urlShortner.shorten);
+app.post('/', urlShortner.shorten);
 
 
 // List all the shortened URLs
@@ -43,6 +43,7 @@ app.get('/list', function(req,res){
 
 
 // Redirecting to proper url from short URL
+
 app.get('/:link', urlShortner.find);
 
 // 404 Handler

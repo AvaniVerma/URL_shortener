@@ -25,17 +25,19 @@ const validateUrls = urls => {
 
 exports.shorten = async (req, res) => {
     try {
+        const urls = Array.isArray(req.body.url) ? req.body.url : [ req.body.url ];
         
-        if(!req.body.url) {
+        for(url in urls)
+        {
+            if(url.trim().length==0)
             throw new Error('Please provide url');
         }
 
-        const urls = Array.isArray(req.body.url) ? req.body.url : [ req.body.url ];
-        
         validateUrls(urls);
         // wait while all urls beign stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
-        res.send({ message: 'URL has been posted successfully.', data: shortedUrls });
+        console.log(shortedUrls);
+        res.render('index',{ message: 'URL has been shortened successfully.', msg: shortedUrls });
     } catch(err) {
         res.status(422).send({
             message: err.message
