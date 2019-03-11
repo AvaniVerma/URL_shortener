@@ -32,14 +32,7 @@ app.post('/', urlShortner.shorten);
 
 
 // List all the shortened URLs
-app.get('/list', function(req,res){
-    var arr=[];
-    db.ref('shorten_urls').once('value').then(function(snapshot) {
-        x = snapshot.val();   
-        console.log("out")
-        res.render('after_req', {msg : x});
-    });
-})
+app.get('/list', urlShortner.index)
 
 app.get('/favicon.ico', (req, res) => {
     return res.status(404).send();

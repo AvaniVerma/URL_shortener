@@ -34,7 +34,7 @@ exports.shorten = async (req, res) => {
         }
 
         validateUrls(urls);
-        // wait while all urls beign stored in firebase.
+        // wait while all urls being stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
         console.log(shortedUrls);
         res.render('index',{ message: 'URL has been shortened successfully.', msg: shortedUrls });
@@ -49,7 +49,7 @@ exports.shorten = async (req, res) => {
 exports.index = async (req, res) => {
     try {
         const snapshots = await shortedUrlsRef.once('value');
-        res.send(snapshots.val());
+        res.render("after_req", {msg:snapshots.val()})
     } catch(err) {
         res.status(500).send(err.message);
     }
