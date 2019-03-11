@@ -12,9 +12,20 @@ const store = (url) => {
         createdAt: (new Date()).toJSON(),
         visited : 0
     }
-    return db.ref('shorten_urls').child(obj.short).set(obj).then(() => obj);
+
+    var key = url.split('.').join('').split('/').join('').
+                    split(':').join('').split('$').join('').
+                    split('#').join('').split('?').join('').
+                    split('[').join('').split(']').join('').
+                    split('=').join('').split('%').join('');
+
+    return db.ref('shorten_urls').child(obj.short).set(obj).
+            then(db.ref('URL_list').child(key).set(true)).
+            then(() => obj);
 }
 
+
+// Checks if URL is valid or not
 const validateUrls = urls => {
     urls.forEach(url => {
         if(!validUrl.isUri(url)) {
@@ -34,9 +45,9 @@ exports.shorten = async (req, res) => {
         }
 
         validateUrls(urls);
+
         // wait while all urls being stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
-        console.log(shortedUrls);
         res.render('index',{ message: 'URL has been shortened successfully.', msg: shortedUrls });
     } catch(err) {
         res.status(422).send({
@@ -46,6 +57,8 @@ exports.shorten = async (req, res) => {
 }
 
 
+
+// Display all the shortened URLs
 exports.index = async (req, res) => {
     try {
         const snapshots = await shortedUrlsRef.once('value');
@@ -55,12 +68,15 @@ exports.index = async (req, res) => {
     }
 }
 
+
+
+// Redirect
 exports.find = async (req, res) => {
     try {
         const snaps = await shortedUrlsRef.child(req.params.link).once('value');
         const link = snaps.val();
         if(!link) {
-            throw new Error('Then url is not valid');
+            res.send('The url is not valid');
         }
         res.redirect(link.original)
     } catch(err) {

@@ -15,9 +15,6 @@ app.set('view engine', 'hbs')
 
  
 // To-do : Add checks for repetition of key or original URL
-//          Improve the shortened URL so that it works on different search engines
-//          Integrate properly
-//          Redirect after shortening a URL
 //          Improve UI of list
 
 const urlShortner = require('./controllers/urlShortnerController');
