@@ -5,6 +5,8 @@ const db = require('../db');
 
 const shortedUrlsRef = db.ref('/shorten_urls');
 
+
+// Creates a new entry if it doesn't exist already, else returns the existing entry
 const store = (url) => {
     const obj = { 
         short : shortid.generate(),
@@ -12,16 +14,21 @@ const store = (url) => {
         createdAt: (new Date()).toJSON(),
         visited : 0
     }
-
     var key = url.split('.').join('').split('/').join('').
                     split(':').join('').split('$').join('').
                     split('#').join('').split('?').join('').
                     split('[').join('').split(']').join('').
                     split('=').join('').split('%').join('');
 
-    return db.ref('shorten_urls').child(obj.short).set(obj).
-            then(db.ref('URL_list').child(key).set(true)).
-            then(() => obj);
+    return db.ref('URL_list').child(key).once("value").then(function(snapshot){
+        if(snapshot.exists() != true)
+            return db.ref('shorten_urls').child(obj.short).set(obj).
+                then(db.ref('URL_list').child(key).set(obj.short)).
+                then(() => obj);
+        else
+            return db.ref('shorten_urls').child(snapshot.val()).once("value").then((snp) => snp.val());
+    })
+
 }
 
 
