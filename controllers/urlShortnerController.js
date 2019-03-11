@@ -85,6 +85,13 @@ exports.find = async (req, res) => {
         if(!link) {
             res.send('The url is not valid');
         }
+        
+        db.ref(`shorten_urls/` + req.params.link + `/visited`).transaction(function(visited) {
+        // visited has never been set, it will be `null`.
+             return visited + 1;
+        })
+
+
         res.redirect(link.original)
     } catch(err) {
         console.log(err);
