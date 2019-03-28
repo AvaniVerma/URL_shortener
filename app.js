@@ -14,8 +14,7 @@ app.get('/', function(req,res){
 app.set('view engine', 'hbs')
 
  
-// To-do : Add checks for repetition of key or original URL
-//          Improve UI of list
+// To-do :  Improve UI of list
 
 const urlShortner = require('./controllers/urlShortnerController');
 
@@ -37,7 +36,6 @@ app.get('/favicon.ico', (req, res) => {
 
 
 // Redirecting to proper url from short URL
-
 app.get('/:link', urlShortner.find);
 
 // 404 Handler

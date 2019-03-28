@@ -35,23 +35,40 @@ const store = (url) => {
 // Checks if URL is valid or not
 const validateUrls = urls => {
     urls.forEach(url => {
-        if(!validUrl.isUri(url)) {
-            throw new Error('Oops, one of urls is not valid, please try again with valid urls.');
-        }
+        // if(!validUrl.isUri(url)) {
+        //     throw new Error('Oops, one of urls is not valid, please try again with valid urls.');
+        // }
+
+        var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+            '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+            '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+            '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+        if(!pattern.test(url))
+            throw new Error('Oops, one of the URLs is not valid, please try again.');
     })
 }
 
 exports.shorten = async (req, res) => {
     try {
         const urls = Array.isArray(req.body.url) ? req.body.url : [ req.body.url ];
-        
         for(url in urls)
         {
             if(url.trim().length==0)
             throw new Error('Please provide url');
         }
-
         validateUrls(urls);
+        
+        for(var i=0; i<urls.length; i++)
+        {
+            var domain = urls[i].split("www.");
+            if(domain.length > 1)
+                urls[i]="https://" + domain[1]; 
+        }
+        for(i of urls)
+            console.log(i)
+
 
         // wait while all urls being stored in firebase.
         const shortedUrls = await Promise.all( urls.map(url => store(url)) );
@@ -80,6 +97,7 @@ exports.index = async (req, res) => {
 // Redirect
 exports.find = async (req, res) => {
     try {
+        console.log("GOT :  "+ req.params.link)
         const snaps = await shortedUrlsRef.child(req.params.link).once('value');
         const link = snaps.val();
         if(!link) {
@@ -90,8 +108,7 @@ exports.find = async (req, res) => {
         // visited has never been set, it will be `null`.
              return visited + 1;
         })
-
-
+        // console.log("Redirecting to : " + link.original)
         res.redirect(link.original)
     } catch(err) {
         console.log(err);
